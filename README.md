@@ -59,8 +59,8 @@
 
 ### 1. 取得原始碼
 ```bash
-git clone git@github.com:biggio/EV-Charger-Recorder.git
-cd EV-Charger-Recorder
+git clone git@github.com:biggio/ChargeNote.git
+cd ChargeNote
 ```
 
 ### 2. 環境需求

@@ -30,7 +30,7 @@ data class UpdateInfo(
 
 object AppUpdateService {
     private const val GITHUB_REPO_OWNER = "biggio"
-    private const val GITHUB_REPO_NAME = "EV-Charger-Recorder"
+    private const val GITHUB_REPO_NAME = "ChargeNote"
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
