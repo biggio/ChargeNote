@@ -1374,7 +1374,7 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
                             Text(
-                                text = "EV 智慧充電能耗 v${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE})",
+                                text = "電記 v${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE})",
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = extendedColors.textPrimary

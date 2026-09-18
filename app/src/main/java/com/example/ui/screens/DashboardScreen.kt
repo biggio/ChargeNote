@@ -151,13 +151,13 @@ fun DashboardScreen(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "EV 智慧充電能耗",
+                            text = "電記",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = extendedColors.textPrimary
                         )
                         Text(
-                            text = "真實行駛電耗與支出追蹤",
+                            text = "EV 充電能耗與支出精算",
                             fontSize = 12.sp,
                             color = extendedColors.textSecondary
                         )

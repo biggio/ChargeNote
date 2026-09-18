@@ -17,8 +17,8 @@ android {
     applicationId = "com.aistudio.evcharging.vkyrnt"
     minSdk = 24
     targetSdk = 36
-    versionCode = 9
-    versionName = "1.6.0"
+    versionCode = 10
+    versionName = "1.6.1"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }

@@ -1,13 +1,13 @@
-# ⚡ EV Charger Recorder (EV 智慧充電能耗記錄器)
+# ⚡ 電記 (ChargeNote) - EV 智慧充電能耗記錄器
 
 [![Android](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com/)
 [![Kotlin](https://img.shields.io/badge/Language-Kotlin-purple.svg)](https://kotlinlang.org/)
 [![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-blue.svg)](https://developer.android.com/jetpack/compose)
 [![Cloudflare D1](https://img.shields.io/badge/Cloud-Cloudflare%20D1-orange.svg)](https://developers.cloudflare.com/d1/)
 [![Gemini AI](https://img.shields.io/badge/AI-Google%20Gemini-blueviolet.svg)](https://ai.google.dev/)
-[![Version](https://img.shields.io/badge/Version-v1.5.0%20(Build%207)-brightgreen.svg)](https://github.com/)
+[![Version](https://img.shields.io/badge/Version-v1.6.1%20(Build%2010)-brightgreen.svg)](https://github.com/)
 
-一款專為電動車（EV）車主打造的現代化智慧充電與電耗記錄 Android 應用程式。採用 **Jetpack Compose + Material Design 3** 全新開發，結合 **Google Gemini 視覺 AI 拍照辨識**、**離線優先（Offline-First）架構** 以及 **Cloudflare D1 全球分散式雲端雙向同步**。
+**電記 (ChargeNote)** 是一款專為電動車（EV）車主打造的現代化智慧充電與電耗記錄 Android 應用程式。採用 **Jetpack Compose + Material Design 3** 全新開發，結合 **Google Gemini 視覺 AI 拍照辨識**、**離線優先（Offline-First）架構**、**Cloudflare D1 全球分散式雲端雙向同步** 以及 **GitHub Releases 應用程式內自動更新 (OTA)**。
 
 ---
 
