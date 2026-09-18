@@ -70,6 +70,22 @@ class SettingsRepository(context: Context) {
         _cloudflareLastSyncTime.value = timestamp
     }
 
+    private val _autoCheckUpdate = MutableStateFlow(prefs.getBoolean("auto_check_update", true))
+    val autoCheckUpdate: StateFlow<Boolean> = _autoCheckUpdate.asStateFlow()
+
+    private val _lastUpdateCheckTime = MutableStateFlow(prefs.getLong("last_update_check_time", 0L))
+    val lastUpdateCheckTime: StateFlow<Long> = _lastUpdateCheckTime.asStateFlow()
+
+    fun saveAutoCheckUpdate(enabled: Boolean) {
+        prefs.edit().putBoolean("auto_check_update", enabled).apply()
+        _autoCheckUpdate.value = enabled
+    }
+
+    fun updateLastUpdateCheckTime(timestamp: Long = System.currentTimeMillis()) {
+        prefs.edit().putLong("last_update_check_time", timestamp).apply()
+        _lastUpdateCheckTime.value = timestamp
+    }
+
     private fun loadVehicleSettings(): VehicleSettings {
         return VehicleSettings(
             vehicleName = prefs.getString("vehicle_name", "Luxgen N7 亮點版7人") ?: "Luxgen N7 亮點版7人",

@@ -21,6 +21,9 @@ import com.example.ui.screens.SettingsScreen
 import com.example.ui.theme.EVAppTheme
 import com.example.ui.viewmodel.EVViewModel
 
+import androidx.compose.runtime.LaunchedEffect
+import com.example.ui.components.AppUpdateDialog
+
 enum class AppScreen {
     DASHBOARD,
     HISTORY,
@@ -35,6 +38,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val themeConfig by viewModel.themeConfig.collectAsState()
+
+            LaunchedEffect(Unit) {
+                viewModel.checkUpdateOnLaunch()
+            }
 
             EVAppTheme(themeConfig = themeConfig) {
                 Surface(modifier = Modifier.fillMaxSize()) {
@@ -65,6 +72,9 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     }
+
+                    // Centrally host the update dialog across all screens
+                    AppUpdateDialog(viewModel = viewModel)
                 }
             }
         }

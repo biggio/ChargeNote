@@ -26,12 +26,27 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.example.BuildConfig
+import com.example.util.AppUpdateService
 import com.example.util.CloudflareSyncService
+import com.example.util.UpdateInfo
+import android.content.Context
+import java.io.File
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+sealed interface AppUpdateUiState {
+    object Idle : AppUpdateUiState
+    object Checking : AppUpdateUiState
+    data class Available(val info: UpdateInfo) : AppUpdateUiState
+    data class Downloading(val info: UpdateInfo, val progress: Int) : AppUpdateUiState
+    data class ReadyToInstall(val info: UpdateInfo, val apkFile: File) : AppUpdateUiState
+    data class UpToDate(val latestVersion: String) : AppUpdateUiState
+    data class Error(val message: String) : AppUpdateUiState
+}
 
 class EVViewModel(application: Application) : AndroidViewModel(application) {
     private val database = AppDatabase.getInstance(application)
@@ -50,6 +65,12 @@ class EVViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _isCloudSyncing = MutableStateFlow(false)
     val isCloudSyncing: StateFlow<Boolean> = _isCloudSyncing.asStateFlow()
+
+    val autoCheckUpdate: StateFlow<Boolean> = settingsRepo.autoCheckUpdate
+    val lastUpdateCheckTime: StateFlow<Long> = settingsRepo.lastUpdateCheckTime
+
+    private val _updateUiState = MutableStateFlow<AppUpdateUiState>(AppUpdateUiState.Idle)
+    val updateUiState: StateFlow<AppUpdateUiState> = _updateUiState.asStateFlow()
 
     val records: StateFlow<List<ChargingRecord>> = chargingRepo.allRecords
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -570,5 +591,73 @@ class EVViewModel(application: Application) : AndroidViewModel(application) {
         } catch (e: Exception) {
             Pair(false, "匯入失敗：${e.localizedMessage ?: "格式不正確"}")
         }
+    }
+
+    fun saveAutoCheckUpdate(enabled: Boolean) {
+        settingsRepo.saveAutoCheckUpdate(enabled)
+    }
+
+    fun checkUpdateOnLaunch() {
+        if (autoCheckUpdate.value) {
+            checkForUpdates(isManual = false)
+        }
+    }
+
+    fun checkForUpdates(isManual: Boolean = false) {
+        viewModelScope.launch {
+            if (isManual) {
+                _updateUiState.value = AppUpdateUiState.Checking
+            }
+            val res = AppUpdateService.checkForUpdate()
+            settingsRepo.updateLastUpdateCheckTime()
+
+            if (res.isSuccess) {
+                val info = res.getOrNull()
+                if (info != null && info.isNewer) {
+                    _updateUiState.value = AppUpdateUiState.Available(info)
+                } else {
+                    if (isManual) {
+                        _updateUiState.value = AppUpdateUiState.UpToDate(info?.versionName ?: BuildConfig.VERSION_NAME)
+                    } else {
+                        _updateUiState.value = AppUpdateUiState.Idle
+                    }
+                }
+            } else {
+                if (isManual) {
+                    _updateUiState.value = AppUpdateUiState.Error(res.exceptionOrNull()?.localizedMessage ?: "檢查更新失敗")
+                } else {
+                    _updateUiState.value = AppUpdateUiState.Idle
+                }
+            }
+        }
+    }
+
+    fun startDownloadUpdate(context: Context, info: UpdateInfo) {
+        viewModelScope.launch {
+            _updateUiState.value = AppUpdateUiState.Downloading(info, 0)
+            val res = AppUpdateService.downloadApk(context, info.apkDownloadUrl) { progress ->
+                _updateUiState.value = AppUpdateUiState.Downloading(info, progress)
+            }
+            if (res.isSuccess) {
+                val file = res.getOrNull()
+                if (file != null) {
+                    _updateUiState.value = AppUpdateUiState.ReadyToInstall(info, file)
+                    // Automatically trigger installation intent
+                    AppUpdateService.installApk(context, file)
+                } else {
+                    _updateUiState.value = AppUpdateUiState.Error("下載完成但找不到檔案")
+                }
+            } else {
+                _updateUiState.value = AppUpdateUiState.Error(res.exceptionOrNull()?.localizedMessage ?: "下載安裝檔失敗")
+            }
+        }
+    }
+
+    fun installDownloadedApk(context: Context, apkFile: File) {
+        AppUpdateService.installApk(context, apkFile)
+    }
+
+    fun dismissUpdateDialog() {
+        _updateUiState.value = AppUpdateUiState.Idle
     }
 }

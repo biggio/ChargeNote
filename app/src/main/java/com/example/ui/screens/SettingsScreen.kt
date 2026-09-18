@@ -56,6 +56,9 @@ import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.SystemUpdate
+import com.example.ui.components.AppUpdateDialog
+import com.example.ui.viewmodel.AppUpdateUiState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -124,6 +127,9 @@ fun SettingsScreen(
     val cloudflareAutoSync by viewModel.cloudflareAutoSync.collectAsState()
     val cloudflareLastSyncTime by viewModel.cloudflareLastSyncTime.collectAsState()
     val isCloudSyncing by viewModel.isCloudSyncing.collectAsState()
+    val autoCheckUpdate by viewModel.autoCheckUpdate.collectAsState()
+    val lastUpdateCheckTime by viewModel.lastUpdateCheckTime.collectAsState()
+    val updateUiState by viewModel.updateUiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
     var apiKeyInput by remember(customApiKey) { mutableStateOf(customApiKey) }
@@ -1348,7 +1354,7 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 4. App Info
+            // 4. App Info & Version Update
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1357,26 +1363,109 @@ fun SettingsScreen(
                     .border(1.dp, extendedColors.cardBorder, RoundedCornerShape(20.dp))
                     .padding(16.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = "Info",
-                        tint = extendedColors.textSecondary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column {
-                        Text(
-                            text = "EV 智慧充電能耗 v${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE})",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = extendedColors.textPrimary
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Info",
+                            tint = extendedColors.textSecondary,
+                            modifier = Modifier.size(20.dp)
                         )
-                        Text(
-                            text = "專為電動車主打造的高精度電耗與費用分析工具",
-                            fontSize = 11.sp,
-                            color = extendedColors.textSecondary
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                text = "EV 智慧充電能耗 v${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE})",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = extendedColors.textPrimary
+                            )
+                            Text(
+                                text = "專為電動車主打造的高精度電耗與費用分析工具",
+                                fontSize = 11.sp,
+                                color = extendedColors.textSecondary
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Divider(color = extendedColors.cardBorder.copy(alpha = 0.6f))
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Auto-check update switch
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                            Text(
+                                text = "啟動時自動檢查新版本",
+                                color = extendedColors.textPrimary,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = "自動比對 GitHub Releases 最新釋出版本與更新日誌",
+                                color = extendedColors.textSecondary,
+                                fontSize = 11.sp
+                            )
+                        }
+                        Switch(
+                            checked = autoCheckUpdate,
+                            onCheckedChange = { viewModel.saveAutoCheckUpdate(it) },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.White,
+                                checkedTrackColor = extendedColors.accentPrimary
+                            )
                         )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Manual Check Update button & Last check time
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val lastCheckStr = if (lastUpdateCheckTime > 0L) {
+                            val sdf = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.getDefault())
+                            "上次檢查：${sdf.format(Date(lastUpdateCheckTime))}"
+                        } else {
+                            "上次檢查：尚未檢查"
+                        }
+                        Text(
+                            text = lastCheckStr,
+                            color = extendedColors.textSecondary,
+                            fontSize = 11.sp
+                        )
+
+                        OutlinedButton(
+                            onClick = {
+                                viewModel.checkForUpdates(isManual = true)
+                            },
+                            enabled = updateUiState !is AppUpdateUiState.Checking && updateUiState !is AppUpdateUiState.Downloading,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.height(36.dp)
+                        ) {
+                            if (updateUiState is AppUpdateUiState.Checking) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(14.dp),
+                                    strokeWidth = 2.dp,
+                                    color = extendedColors.accentPrimary
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("檢查中...", fontSize = 12.sp)
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.SystemUpdate,
+                                    contentDescription = "Check Update",
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("檢查新版本", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                            }
+                        }
                     }
                 }
             }
