@@ -51,7 +51,7 @@ object AppUpdateService {
             val request = Request.Builder()
                 .url(url)
                 .addHeader("Accept", "application/vnd.github.v3+json")
-                .addHeader("User-Agent", "EV-Charger-Recorder-Android/${BuildConfig.VERSION_NAME}")
+                .addHeader("User-Agent", "ChargeNote-Android/${BuildConfig.VERSION_NAME}")
                 .get()
                 .build()
 

@@ -38,9 +38,6 @@ jobs:
             TAG_NAME="latest"
           fi
           cp app/build/outputs/apk/debug/app-debug.apk release-assets/ChargeNote-${TAG_NAME}.apk
-          cp app/build/outputs/apk/debug/app-debug.apk release-assets/ChargeNote-debug.apk
-          cp app/build/outputs/apk/debug/app-debug.apk release-assets/EV-Charger-Recorder-${TAG_NAME}.apk
-          cp app/build/outputs/apk/debug/app-debug.apk release-assets/EV-Charger-Recorder-debug.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
