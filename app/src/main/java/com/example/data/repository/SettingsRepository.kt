@@ -40,7 +40,9 @@ class SettingsRepository(context: Context) {
         return _customGeminiApiKey.value.trim()
     }
 
-    private val _cloudflareWorkerUrl = MutableStateFlow(prefs.getString("cloudflare_worker_url", "") ?: "")
+    private val _cloudflareWorkerUrl = MutableStateFlow(
+        prefs.getString("cloudflare_worker_url", "https://chargenote.biggio.workers.dev") ?: "https://chargenote.biggio.workers.dev"
+    )
     val cloudflareWorkerUrl: StateFlow<String> = _cloudflareWorkerUrl.asStateFlow()
 
     private val _cloudflareSyncSecret = MutableStateFlow(prefs.getString("cloudflare_sync_secret", "") ?: "")

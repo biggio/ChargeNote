@@ -1,7 +1,7 @@
 {
-  "name": "ev-charger-sync",
+  "name": "chargenote",
   "version": "1.0.0",
-  "description": "Cloudflare Worker for EV Charger Recorder D1 sync",
+  "description": "Cloudflare Worker for ChargeNote (電記) D1 sync",
   "main": "worker.js",
   "scripts": {
     "deploy": "wrangler deploy"

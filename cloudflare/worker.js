@@ -48,7 +48,7 @@ export default {
 
       return jsonResponse({
         status: dbStatus === "connected" ? "ok" : "warning",
-        service: "EV Charger Recorder D1 Sync",
+        service: "ChargeNote D1 Sync",
         version: "1.5",
         database: dbStatus,
         recordCount: recordCount,

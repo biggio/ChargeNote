@@ -940,7 +940,7 @@ fun SettingsScreen(
                     OutlinedTextField(
                         value = workerUrlInput,
                         onValueChange = { workerUrlInput = it },
-                        placeholder = { Text("https://ev-charger-sync.xxx.workers.dev", color = extendedColors.textSecondary.copy(alpha = 0.5f), fontSize = 12.sp) },
+                        placeholder = { Text("https://chargenote.biggio.workers.dev", color = extendedColors.textSecondary.copy(alpha = 0.5f), fontSize = 12.sp) },
                         leadingIcon = {
                             Icon(Icons.Default.Cloud, contentDescription = null, tint = extendedColors.textSecondary, modifier = Modifier.size(18.dp))
                         },
