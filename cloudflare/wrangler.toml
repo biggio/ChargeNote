@@ -1,0 +1,16 @@
+name = "ev-charger-sync"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# Bind a D1 Database.
+# 1. Run: npx wrangler d1 create ev-charging-db
+# 2. Paste the database_name and database_id below:
+[[d1_databases]]
+binding = "DB"
+database_name = "ev-charging-db"
+database_id = "YOUR_DATABASE_ID"
+
+[vars]
+# Optional: Set a secret token for securing sync access.
+# If set, the Android App must send this same secret token in Authorization header.
+SYNC_SECRET = "YOUR_CUSTOM_SYNC_SECRET"
