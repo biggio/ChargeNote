@@ -13,23 +13,49 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // 2. Health check (no auth required for simple ping)
-    if (path === "/" || path === "/api/health") {
-      return jsonResponse({
-        status: "ok",
-        service: "EV Charger Recorder D1 Sync",
-        version: "1.0",
-        timestamp: Date.now()
-      });
-    }
-
-    // 3. Verify Authorization
+    // 2. Verify Authorization
     const authHeader = request.headers.get("Authorization") || "";
     const token = authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : "";
     const expectedSecret = env.SYNC_SECRET ? env.SYNC_SECRET.trim() : "";
 
-    if (expectedSecret && token !== expectedSecret) {
-      return jsonResponse({ success: false, error: "未授權：同步金鑰（Sync Secret）不正確" }, 401);
+    // If server has SYNC_SECRET configured, strictly enforce it!
+    if (expectedSecret) {
+      if (!token || token !== expectedSecret) {
+        return jsonResponse({
+          success: false,
+          error: "未授權 (HTTP 401)：同步金鑰（Sync Secret）不正確，請確認與 Cloudflare Worker 一致"
+        }, 401);
+      }
+    }
+
+    // 3. Health & Auth check
+    if (path === "/" || path === "/api/health") {
+      let dbStatus = "not_bound";
+      let recordCount = 0;
+
+      if (env.DB) {
+        try {
+          const res = await env.DB.prepare("SELECT count(*) as total FROM charging_records").first();
+          dbStatus = "connected";
+          recordCount = res ? res.total : 0;
+        } catch (dbErr) {
+          dbStatus = "error: " + (dbErr.message || String(dbErr));
+        }
+      }
+
+      const hasSecret = Boolean(expectedSecret);
+      const isWarn = !hasSecret && Boolean(token);
+
+      return jsonResponse({
+        status: dbStatus === "connected" ? "ok" : "warning",
+        service: "EV Charger Recorder D1 Sync",
+        version: "1.5",
+        database: dbStatus,
+        recordCount: recordCount,
+        hasServerSecret: hasSecret,
+        warning: isWarn ? "Cloudflare Worker 尚未設定 SYNC_SECRET 變數，目前金鑰尚未具備防護效果" : null,
+        timestamp: Date.now()
+      });
     }
 
     if (!env.DB) {

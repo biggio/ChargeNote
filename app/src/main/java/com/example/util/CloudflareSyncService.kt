@@ -56,9 +56,27 @@ object CloudflareSyncService {
             val body = response.body?.string() ?: ""
 
             if (code == 200) {
-                Result.success("連線成功！Cloudflare Worker 與 D1 服務正常運作中。")
+                try {
+                    val json = JSONObject(body)
+                    val db = json.optString("database")
+                    val warning = json.optString("warning")
+                    val total = json.optInt("recordCount", 0)
+                    val hasSecret = json.optBoolean("hasServerSecret", false)
+
+                    if (db.startsWith("error")) {
+                        Result.failure(Exception("Worker 連線成功，但 D1 資料庫查詢失敗：$db\n請確認 D1 是否已執行 schema.sql 建表"))
+                    } else if (warning.isNotBlank()) {
+                        Result.success("連線成功！⚠️ 提示：$warning\n（D1 資料表正常，目前雲端共有 $total 筆紀錄）")
+                    } else if (hasSecret) {
+                        Result.success("連線與金鑰驗證成功！Cloudflare Worker 與 D1 服務正常運作中（雲端現有 $total 筆紀錄）。")
+                    } else {
+                        Result.success("連線成功！Cloudflare Worker 與 D1 服務正常運作中（雲端現有 $total 筆紀錄）。")
+                    }
+                } catch (e: Exception) {
+                    Result.success("連線成功！Cloudflare Worker 與 D1 服務正常運作中。")
+                }
             } else if (code == 401) {
-                Result.failure(Exception("驗證失敗 (HTTP 401)：同步金鑰（Sync Secret）不相符"))
+                Result.failure(Exception("驗證失敗 (HTTP 401)：同步金鑰（Sync Secret）不正確，請確認 App 輸入的金鑰與 Cloudflare Worker 一致"))
             } else {
                 Result.failure(Exception("連線異常 (HTTP $code)：$body"))
             }
