@@ -1,4 +1,6 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
+import java.util.Properties
+import java.io.FileInputStream
 
 plugins {
   alias(libs.plugins.android.application)
@@ -23,14 +25,35 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
+  val keystorePropertiesFile = rootProject.file("keystore.properties")
+  val keystoreProperties = Properties()
+  if (keystorePropertiesFile.exists()) {
+    FileInputStream(keystorePropertiesFile).use { stream ->
+      keystoreProperties.load(stream)
+    }
+  }
+
   val customDebugKeystore = file("${rootDir}/debug.keystore")
   signingConfigs {
     create("release") {
-      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
-      storeFile = file(keystorePath)
-      storePassword = System.getenv("STORE_PASSWORD")
-      keyAlias = "upload"
-      keyPassword = System.getenv("KEY_PASSWORD")
+      val rawKeystorePath = System.getenv("RELEASE_KEYSTORE_PATH")
+        ?: keystoreProperties.getProperty("storeFile")
+        ?: "release.keystore"
+      val resolvedFile = file(rawKeystorePath)
+      storeFile = if (resolvedFile.isAbsolute && resolvedFile.exists()) {
+        resolvedFile
+      } else if (file("${rootDir}/$rawKeystorePath").exists()) {
+        file("${rootDir}/$rawKeystorePath")
+      } else {
+        file("${projectDir}/$rawKeystorePath")
+      }
+      storePassword = System.getenv("RELEASE_STORE_PASSWORD")
+        ?: keystoreProperties.getProperty("storePassword")
+      keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+        ?: keystoreProperties.getProperty("keyAlias")
+        ?: "releaseKey"
+      keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+        ?: keystoreProperties.getProperty("keyPassword")
     }
     if (customDebugKeystore.exists()) {
       create("debugConfig") {
@@ -44,8 +67,10 @@ android {
 
   buildTypes {
     release {
+      isDebuggable = false
       isCrunchPngs = false
-      isMinifyEnabled = false
+      isMinifyEnabled = true
+      isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }

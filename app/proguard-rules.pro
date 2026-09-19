@@ -19,3 +19,25 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Preserve line numbers for stack traces
+-keepattributes SourceFile,LineNumberTable
+
+# Preserve Annotations, Signatures, and InnerClasses
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
+
+# Data models
+-keep class com.example.data.model.** { *; }
+-keep class com.example.util.SyncResult { *; }
+-keep class com.example.util.UpdateInfo { *; }
+
+# Room
+-keep class * extends androidx.room.RoomDatabase
+-keep @androidx.room.Dao interface * { *; }
+-keep @androidx.room.Entity class * { *; }
+
+# Networking & Coroutines
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-keepclassmembers class kotlinx.coroutines.** { *; }
+
